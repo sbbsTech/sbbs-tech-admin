@@ -22,12 +22,16 @@ def setup_app():
     init_db()
     
     # Get allowed origins from environment variable or use defaults
-    allowed_origins = os.getenv(
-        "ALLOWED_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173"
-    ).split(",")
+    # For GoDaddy: same domain, so CORS not strictly needed, but keep for flexibility
+    allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+    if allowed_origins_env:
+        allowed_origins = allowed_origins_env.split(",")
+    else:
+        # Default: allow localhost for dev, or allow all if same domain
+        allowed_origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
     
     # Configure CORS - allows frontend from different domains
+    # On GoDaddy, frontend and backend are same domain, so this is mainly for dev
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allowed_origins,

@@ -1,0 +1,27 @@
+# Example .htaccess file for GoDaddy Python App
+# Copy this to your Application Root and replace the paths with YOUR actual paths
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/g17po2g810k9/public_html/sbbs-tech-admin/backend
+PassengerBaseURI "/"
+PassengerPython "/home/g17po2g810k9/virtualenv/public_html/sbbs-tech-admin/backend/3.9/bin/python"
+PassengerAppLogFile "/home/g17po2g810k9/logs/sbbs-tech-admin-backend.log"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# Turn off directory index
+Options -Indexes
+
+# Enable rewrite engine for React Router (SPA routing)
+RewriteEngine On
+RewriteBase /
+
+# Don't rewrite files that exist
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Don't rewrite API calls
+RewriteCond %{REQUEST_URI} !^/api/
+
+# Rewrite everything else to index.html for React Router
+RewriteRule . /index.html [L]
+

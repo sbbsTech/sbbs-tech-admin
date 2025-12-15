@@ -2,9 +2,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+from pathlib import Path
 
 # Database URL - using SQLite for simplicity
-DATABASE_URL = "sqlite:///./students.db"
+# Use absolute path for GoDaddy compatibility
+BASE_DIR = Path(__file__).parent.parent
+DATABASE_PATH = BASE_DIR / "students.db"
+DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
 # Create engine
 engine = create_engine(

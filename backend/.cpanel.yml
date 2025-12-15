@@ -1,0 +1,39 @@
+---
+# GoDaddy cPanel Git Deployment Configuration
+# This file automates deployment when you push to Git
+# 
+# IMPORTANT: Update DEPLOYPATH below with your actual Application Root path
+# You'll get this path when creating Python App in cPanel
+# Example: /home/username/public_html/studentapp
+
+deployment:
+  tasks:
+    # Set deployment path - UPDATE THIS with your actual Application Root path
+    # Replace 'your_username' with your GoDaddy cPanel username
+    # Replace 'studentapp' with your Application Root folder name
+    - export DEPLOYPATH=/home/g17po2g810k9/public_html/sbbs-tech-admin/backend
+    
+    # Create deployment directory if it doesn't exist
+    - /bin/mkdir -p $DEPLOYPATH
+    
+    # Copy backend files to deployment path
+    # This copies the entire backend folder structure including:
+    # - passenger_wsgi.py
+    # - requirements.txt
+    # - app/ folder (with static files inside)
+    - /bin/cp -R sbbs-tech-admin/backend/* $DEPLOYPATH/
+    
+    # Set proper permissions for passenger_wsgi.py (required for Passenger)
+    - /bin/chmod 644 $DEPLOYPATH/passenger_wsgi.py
+    
+    # Set proper permissions for directories
+    - /bin/chmod 755 $DEPLOYPATH
+    - /bin/chmod -R 755 $DEPLOYPATH/app
+    
+    # Create tmp directory for app restarts (if it doesn't exist)
+    - /bin/mkdir -p $DEPLOYPATH/tmp
+    - /bin/chmod 755 $DEPLOYPATH/tmp
+    
+    # Create restart file to trigger app reload after deployment
+    - /bin/touch $DEPLOYPATH/tmp/restart.txt
+
