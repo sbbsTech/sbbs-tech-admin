@@ -1,5 +1,8 @@
-// Use environment variable for API URL, fallback to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+// Use environment variable for API URL, fallback to relative path for same-domain deployment
+// For GoDaddy: API will be on same domain, so use relative path
+// For development: use localhost
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (import.meta.env.DEV ? 'http://localhost:8000/api' : '/api')
 
 export interface ApiResponse<T> {
   data?: T
