@@ -1,11 +1,14 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { Student, StudentFormData } from '../types/student'
+import { studentApi } from '../services/api'
 
 interface StudentContextType {
   students: Student[]
-  addStudent: (student: StudentFormData) => void
-  updateStudent: (id: number, student: StudentFormData) => void
-  deleteStudent: (id: number) => void
+  loading: boolean
+  addStudent: (student: StudentFormData) => Promise<void>
+  updateStudent: (id: number, student: StudentFormData) => Promise<void>
+  deleteStudent: (id: number) => Promise<void>
+  refreshStudents: () => Promise<void>
 }
 
 const StudentContext = createContext<StudentContextType | undefined>(undefined)
@@ -23,71 +26,72 @@ interface StudentProviderProps {
 }
 
 export const StudentProvider: React.FC<StudentProviderProps> = ({ children }) => {
-  // Initialize with sample data
-  const [students, setStudents] = useState<Student[]>([
-    {
-      id: 1,
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      enrollmentYear: 2023,
-      dob: '2005-05-15',
-      major: 'Computer Science',
-      class: 'A',
-      year: '1st Year'
-    },
-    {
-      id: 2,
-      firstName: 'Jane',
-      lastName: 'Smith',
-      email: 'jane.smith@example.com',
-      enrollmentYear: 2022,
-      dob: '2004-08-20',
-      major: 'Mathematics',
-      class: 'B',
-      year: '2nd Year'
-    },
-    {
-      id: 3,
-      firstName: 'Mike',
-      lastName: 'Johnson',
-      email: 'mike.johnson@example.com',
-      enrollmentYear: 2021,
-      dob: '2003-12-10',
-      major: 'Physics',
-      class: 'A',
-      year: '3rd Year'
-    }
-  ])
+  const [students, setStudents] = useState<Student[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const addStudent = (studentData: StudentFormData) => {
-    const newStudent: Student = {
-      id: Date.now(), // Simple ID generation
-      ...studentData
+  // Fetch students on mount
+  useEffect(() => {
+    refreshStudents()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const refreshStudents = async () => {
+    setLoading(true)
+    console.log('🔄 Refreshing students list...')
+    const response = await studentApi.getAllStudents()
+    if (response.data) {
+      setStudents(response.data)
+      console.log('✅ Students list updated:', response.data)
+    } else if (response.error) {
+      console.error('❌ Failed to refresh students:', response.error)
     }
-    setStudents(prev => [...prev, newStudent])
+    setLoading(false)
+  }
+
+  const addStudent = async (studentData: StudentFormData) => {
+    console.log('➕ Adding new student:', studentData)
+    const response = await studentApi.createStudent(studentData)
     
-    // Log to console
-    console.log('Student registered successfully:', newStudent)
-    console.log('All students:', [...students, newStudent])
+    if (response.data) {
+      console.log('✅ Student created successfully:', response.data)
+      // Refresh the list
+      await refreshStudents()
+    } else if (response.error) {
+      console.error('❌ Failed to create student:', response.error)
+      throw new Error(response.error)
+    }
   }
 
-  const updateStudent = (id: number, studentData: StudentFormData) => {
-    setStudents(prev =>
-      prev.map(student =>
-        student.id === id ? { ...student, ...studentData } : student
-      )
-    )
-    console.log('Student updated:', { id, ...studentData })
+  const updateStudent = async (id: number, studentData: StudentFormData) => {
+    console.log('✏️ Updating student:', id, studentData)
+    const response = await studentApi.updateStudent(id, studentData)
+    
+    if (response.data) {
+      console.log('✅ Student updated successfully:', response.data)
+      // Refresh the list
+      await refreshStudents()
+    } else if (response.error) {
+      console.error('❌ Failed to update student:', response.error)
+      throw new Error(response.error)
+    }
   }
 
-  const deleteStudent = (id: number) => {
-    setStudents(prev => prev.filter(student => student.id !== id))
-    console.log('Student deleted:', id)
+  const deleteStudent = async (id: number) => {
+    console.log('🗑️ Deleting student:', id)
+    const response = await studentApi.deleteStudent(id)
+    
+    if (!response.error) {
+      console.log('✅ Student deleted successfully:', id)
+      // Refresh the list
+      await refreshStudents()
+    } else {
+      console.error('❌ Failed to delete student:', response.error)
+      throw new Error(response.error)
+    }
   }
 
   return (
-    <StudentContext.Provider value={{ students, addStudent, updateStudent, deleteStudent }}>
+    <StudentContext.Provider value={{ students, loading, addStudent, updateStudent, deleteStudent, refreshStudents }}>
       {children}
     </StudentContext.Provider>
   )

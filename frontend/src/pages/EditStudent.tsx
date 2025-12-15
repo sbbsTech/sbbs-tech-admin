@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useStudents } from '../context/StudentContext'
+import { studentApi } from '../services/api'
 import { StudentFormData, Document } from '../types/student'
 import './RegisterStudent.css'
 
 const EditStudent: React.FC = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-  const { students, updateStudent } = useStudents()
+  const { updateStudent } = useStudents()
   const [showSuccess, setShowSuccess] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [formData, setFormData] = useState<StudentFormData>({
     firstName: '',
@@ -23,17 +25,22 @@ const EditStudent: React.FC = () => {
   })
 
   useEffect(() => {
+    const fetchStudent = async () => {
     if (id) {
-      const studentId = parseInt(id)
-      const student = students.find(s => s.id === studentId)
-      if (student) {
+        try {
+          setLoading(true)
+          console.log('📥 Fetching student data for edit:', id)
+          const response = await studentApi.getStudentById(parseInt(id))
+          
+          if (response.data) {
+            const student = response.data
         setFormData({
           firstName: student.firstName,
           lastName: student.lastName,
           email: student.email,
           enrollmentYear: student.enrollmentYear,
-          dob: student.dob,
-          major: student.major,
+              dob: student.dob || '',
+              major: student.major || '',
           class: student.class,
           year: student.year,
           photo: student.photo,
@@ -42,12 +49,24 @@ const EditStudent: React.FC = () => {
         if (student.photo) {
           setPhotoPreview(student.photo)
         }
+            console.log('✅ Student data loaded for edit')
       } else {
-        // Student not found, redirect back
+            console.error('❌ Failed to fetch student:', response.error)
+            alert('Student not found')
+            navigate('/students/view')
+          }
+        } catch (error) {
+          console.error('❌ Error fetching student:', error)
+          alert('Failed to load student data')
         navigate('/students/view')
+        } finally {
+          setLoading(false)
+        }
       }
     }
-  }, [id, students, navigate])
+    
+    fetchStudent()
+  }, [id, navigate])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -110,7 +129,7 @@ const EditStudent: React.FC = () => {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Validate required fields
@@ -120,8 +139,9 @@ const EditStudent: React.FC = () => {
     }
 
     if (id) {
-      // Update student
-      updateStudent(parseInt(id), formData)
+      try {
+        // Update student via API
+        await updateStudent(parseInt(id), formData)
       
       // Show success message
       setShowSuccess(true)
@@ -131,7 +151,21 @@ const EditStudent: React.FC = () => {
         setShowSuccess(false)
         navigate('/students/view')
       }, 2000)
+      } catch (error: any) {
+        alert(error.message || 'Failed to update student')
+        console.error('Update error:', error)
+      }
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="register-student-page">
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p>Loading student data...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

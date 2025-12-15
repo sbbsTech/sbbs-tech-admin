@@ -40,9 +40,15 @@ const ViewStudents: React.FC = () => {
     navigate(`/students/edit/${student.id}`)
   }
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
-      deleteStudent(id)
+      try {
+        await deleteStudent(id)
+        console.log('✅ Student deleted from UI')
+      } catch (error: any) {
+        alert(error.message || 'Failed to delete student')
+        console.error('Delete error:', error)
+      }
     }
   }
 

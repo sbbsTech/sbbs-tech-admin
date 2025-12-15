@@ -82,7 +82,7 @@ const RegisterStudent: React.FC = () => {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Validate required fields
@@ -91,8 +91,9 @@ const RegisterStudent: React.FC = () => {
       return
     }
 
-    // Add student
-    addStudent(formData)
+    try {
+      // Add student via API
+      await addStudent(formData)
     
     // Show success message
     setShowSuccess(true)
@@ -115,6 +116,10 @@ const RegisterStudent: React.FC = () => {
     setTimeout(() => {
       setShowSuccess(false)
     }, 3000)
+    } catch (error: any) {
+      alert(error.message || 'Failed to register student')
+      console.error('Registration error:', error)
+    }
   }
 
   return (
