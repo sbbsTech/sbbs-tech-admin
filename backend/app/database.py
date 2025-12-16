@@ -6,9 +6,16 @@ from pathlib import Path
 
 # Database URL - using SQLite for simplicity
 # Use absolute path for GoDaddy compatibility
-BASE_DIR = Path(__file__).parent.parent
-DATABASE_PATH = BASE_DIR / "students.db"
-DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+# Try to get from config, otherwise use default
+try:
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from config import DATABASE_URL
+except ImportError:
+    # Fallback: use default path
+    BASE_DIR = Path(__file__).parent.parent
+    DATABASE_PATH = BASE_DIR / "students.db"
+    DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
 # Create engine
 engine = create_engine(

@@ -1,10 +1,12 @@
-# Example .htaccess file for GoDaddy Python App
-# Copy this to your Application Root and replace the paths with YOUR actual paths
+# GoDaddy Python App Configuration
+# IMPORTANT: Update PassengerAppRoot with your actual Application Root path
 
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
-PassengerAppRoot "/home/g17po2g810k9/public_html/sbbs-tech-admin/backend
+PassengerAppRoot "/home/g17po2g810k9/public_html/sbbs-tech-admin/backend"
 PassengerBaseURI "/"
-PassengerPython "/home/g17po2g810k9/virtualenv/public_html/sbbs-tech-admin/backend/3.9/bin/python"
+# PassengerPython - Leave commented out if GoDaddy auto-detects Python
+# If you need to specify, uncomment and set the path from Python App settings
+PassengerPython "/usr/bin/python3"
 PassengerAppLogFile "/home/g17po2g810k9/logs/sbbs-tech-admin-backend.log"
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
 
