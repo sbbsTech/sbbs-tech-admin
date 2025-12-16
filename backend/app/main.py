@@ -55,12 +55,8 @@ def setup_app():
     # Path where Vite builds the frontend (configured in vite.config.ts)
     static_dir = Path(__file__).parent / "static"
     if static_dir.exists():
-        # Mount the built frontend assets at the root.
-        app.mount(
-            "/",
-            StaticFiles(directory=str(static_dir), html=True),
-            name="static",
-        )
+        # Mount static assets directory
+        app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
 
 
 @app.get("/health")
@@ -75,4 +71,29 @@ def health_check():
 
 # Include API routers under /api so they don't conflict with the SPA routes.
 app.include_router(students.router, prefix="/api/students", tags=["students"])
+
+
+# Serve SPA - MUST be after API routes
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists():
+    @app.get("/")
+    async def serve_index():
+        """Serve index.html for root"""
+        index_path = static_dir / "index.html"
+        if index_path.exists():
+            return FileResponse(str(index_path))
+        return {"error": "index.html not found"}
+    
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve index.html for all non-API routes (SPA routing)"""
+        # Skip if it's an API route or asset
+        if full_path.startswith("api/") or full_path.startswith("assets/"):
+            return {"error": "Not found"}
+        
+        # Serve index.html for SPA routing
+        index_path = static_dir / "index.html"
+        if index_path.exists():
+            return FileResponse(str(index_path))
+        return {"error": "index.html not found"}
 
