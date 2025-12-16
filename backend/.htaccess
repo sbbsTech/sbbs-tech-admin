@@ -1,29 +1,32 @@
 # GoDaddy Python App Configuration
-# IMPORTANT: Update PassengerAppRoot with your actual Application Root path
+# IMPORTANT: This file must be in Application Root with permissions 644
 
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
 PassengerAppRoot "/home/g17po2g810k9/public_html/sbbs-tech-admin/backend"
 PassengerBaseURI "/"
-# PassengerPython - Leave commented out if GoDaddy auto-detects Python
-# If you need to specify, uncomment and set the path from Python App settings
 PassengerPython "/usr/bin/python3"
 PassengerAppLogFile "/home/g17po2g810k9/logs/sbbs-tech-admin-backend.log"
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
 
-# Turn off directory index
+# Security: Turn off directory index
 Options -Indexes
 
 # Enable rewrite engine for React Router (SPA routing)
 RewriteEngine On
 RewriteBase /
 
-# Don't rewrite files that exist
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# Don't rewrite if file exists
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
 
-# Don't rewrite API calls
-RewriteCond %{REQUEST_URI} !^/api/
+# Don't rewrite if directory exists
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Don't rewrite API calls (let FastAPI handle them)
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^ - [L]
 
 # Rewrite everything else to index.html for React Router
-RewriteRule . /index.html [L]
+RewriteRule ^ /index.html [L]
 
